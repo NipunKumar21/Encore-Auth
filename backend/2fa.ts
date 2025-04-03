@@ -27,10 +27,12 @@ interface LoginResponse {
   tokens?: AuthTokens;
 }
 
+
 // Helper function to generate and store OTP
 async function generateAndStoreOTP(userId: string, purpose: 'verification' | 'login'): Promise<string> {
+
   const otp = crypto.randomInt(100000, 999999).toString();
-  const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+  const expiresAt = new Date(Date.now() + 3 * 60 * 1000); // 3 minutes
 
   console.log(`Generating OTP for user ${userId}: ${otp}`);
   console.log(`OTP will expire at: ${expiresAt.toISOString()}`);
@@ -88,12 +90,27 @@ async function sendOTP(email: string, otp: string) {
     from: '"Your App" <2nipunkumar1623400iit@gmail.com>',
     to: email,
     subject: "Your OTP Code",
-    text: `Your OTP code is ${otp}. It is valid for 15 minutes.`,
+    text: `Your OTP code is ${otp}. It is valid for 3 minutes.`,
   });
+}
+
+async function cleanupExpiredOTPs() {
+  try {
+    await db.queryRow`
+      DELETE FROM otps 
+      WHERE (used = false AND expires_at < NOW())
+      OR (used = true AND expires_at < NOW() - INTERVAL '1 day')
+    `;
+    console.log('Cleaned up expired and old used OTPs');
+  } catch (error) {
+    console.error('Error cleaning up expired OTPs:', error);
+  }
 }
 
 // Helper function to verify OTP
 async function verifyOTP(userId: string, otp: string, purpose: 'verification' | 'login'): Promise<boolean> {
+
+  await cleanupExpiredOTPs(); 
   console.log(`Verifying OTP for user ${userId}: ${otp}, purpose: ${purpose}`);
 
   const result = await db.queryRow<{ id: string }>`
@@ -257,17 +274,16 @@ export const loginWith2FA = api(
       const otp = await generateAndStoreOTP(user.id, 'login');
       await sendOTP(params.email, otp);
       return { requires2FA: true };
+    } else {
+      console.log('2FA is not enabled, proceeding with normal login');
+      // If 2FA is not enabled, proceed with normal login
+      const tokens = await generateTokens(user.id);
+      await db.exec`
+        INSERT INTO refresh_tokens (user_id, token_hash, expires_at)
+        VALUES (${user.id}, ${tokens.refreshToken}, NOW() + INTERVAL '7 days')
+      `;
+      return { requires2FA: false, tokens };
     }
-
-    console.log('2FA is not enabled, proceeding with normal login');
-    // If 2FA is not enabled, proceed with normal login
-    const tokens = await generateTokens(user.id);
-    await db.exec`
-      INSERT INTO refresh_tokens (user_id, token_hash, expires_at)
-      VALUES (${user.id}, ${tokens.refreshToken}, NOW() + INTERVAL '7 days')
-    `;
-
-    return { requires2FA: false, tokens };
   }
 );
 

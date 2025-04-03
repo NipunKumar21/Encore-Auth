@@ -12,36 +12,40 @@ const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.post("http://localhost:4000/auth/login", {
-        email,
-        password,
-      });
-      console.log("Logged in:", response.data);
-      // Store tokens in local storage or context
-      localStorage.setItem("accessToken", response.data.accessToken);
-      localStorage.setItem("refreshToken", response.data.refreshToken);
-
-      // Log expiration details
-      const accessPayload = JSON.parse(
-        atob(response.data.accessToken.split(".")[1])
-      );
-      const refreshPayload = JSON.parse(
-        atob(response.data.refreshToken.split(".")[1])
+      const response = await axios.post(
+        "http://localhost:4000/auth/login-2fa",
+        {
+          email,
+          password,
+        }
       );
 
-      console.log(
-        "Access Token Expiration:",
-        new Date(accessPayload.exp * 1000).toString()
-      );
-      console.log(
-        "Refresh Token Expiration:",
-        new Date(refreshPayload.exp * 1000).toString()
-      );
+      console.log("Login response:", response.data); // Log the entire response
 
-      navigate("/home"); // Redirect to homepage
+      // Check if 2FA is required
+      if (response.data.requires2FA) {
+        setTimeout(() => {
+          navigate("/two-fa-login", { state: { email } });
+        }, 1000);
+      } else {
+        // Store tokens in local storage
+        localStorage.setItem("accessToken", response.data.tokens.accessToken);
+        localStorage.setItem("refreshToken", response.data.tokens.refreshToken);
+        
+        // Log expiration details
+        const accessPayload = JSON.parse(atob(response.data.tokens.accessToken.split(".")[1]));
+        console.log("Access Token Expiration:", new Date(accessPayload.exp * 1000).toString());
+        
+        navigate("/home"); // Redirect to homepage
+      }
     } catch (error) {
-      console.error("Login failed:", error);
-      alert("Login failed. Please check your credentials.");
+      if (axios.isAxiosError(error) && error.response) {
+        console.error("Login failed:", error.response.data);
+        alert("Login failed: " + error.response.data.message);
+      } else {
+        console.error("Login failed:", error);
+        alert("Login failed. Please check your credentials.");
+      }
     }
   };
 
@@ -49,9 +53,12 @@ const Login: React.FC = () => {
     <div className="flex justify-center items-center h-screen ">
       <div className=" p-8 rounded-lg shadow-lg w-full max-w-md mx-4">
         <h2 className="text-2xl font-bold mb-6 text-center">Sign In</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 border-2 border-teal-700 shadow-[2px_2px_rgba(0,_98,_90,_0.4),_5px_5px_rgba(0,_98,_90,_0.4),_10px_10px_rgba(0,_98,_90,_0.3),_15px_15px_rgba(0,_98,_90,_0.2),_20px_20px_rgba(0,_98,_90,_0.1),_25px_25px_rgba(0,_98,_90,_0.05)] rounded-lg ">
           <div>
-            <label htmlFor="login-email" className="block text-sm font-medium text-white mb-1">
+            <label
+              htmlFor="login-email"
+              className="block text-sm font-medium text-white mb-1"
+            >
               Email ID
             </label>
             <input
@@ -65,7 +72,10 @@ const Login: React.FC = () => {
             />
           </div>
           <div className="relative">
-            <label htmlFor="login-password" className="block text-sm font-medium text-white mb-1">
+            <label
+              htmlFor="login-password"
+              className="block text-sm font-medium text-white mb-1"
+            >
               Password
             </label>
             <input
@@ -76,10 +86,10 @@ const Login: React.FC = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
               className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              
             />
             <span
-              onClick={() =>{ setShowPassword(!showPassword);
+              onClick={() => {
+                setShowPassword(!showPassword);
                 setTimeout(() => {
                   setShowPassword(false);
                 }, 1000);

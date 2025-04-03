@@ -7,8 +7,8 @@ const JWT_SECRET=secret("JWT_SECRET");
 const REFRESH_SECRET=secret("REFRESH_SECRET");
 
 //setting token expiration times
-const ACCESS_TOKEN_EXPIRATION="10s";
-const REFRESH_TOKEN_EXPIRATION="1m";
+const ACCESS_TOKEN_EXPIRATION="5m";
+const REFRESH_TOKEN_EXPIRATION="10m";
 
 export async function generateTokens(userID:string): Promise<{
     accessToken:string;

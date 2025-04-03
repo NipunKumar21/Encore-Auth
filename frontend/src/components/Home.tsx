@@ -7,6 +7,8 @@ const Home: React.FC = () => {
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  useAuth();
+  
   //function to handle logout
   const handleLogOut = async (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
@@ -38,7 +40,6 @@ const Home: React.FC = () => {
     }
   };
 
-  useAuth();
 
   return (
     <div>
@@ -49,9 +50,9 @@ const Home: React.FC = () => {
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
               className="w-10 h-10 text-white p-2 bg-blue-500 rounded-full"
               viewBox="0 0 24 24"
             >

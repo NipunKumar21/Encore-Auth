@@ -95,7 +95,7 @@ const ResetPassword: React.FC = () => {
       </div>
 
       {/* new password */}
-      <div className="passwo`rdContainer">
+      <div className="passwordContainer">
         <input  
           type={showNewPassword ? "text" : "password"}
           placeholder="New Password"

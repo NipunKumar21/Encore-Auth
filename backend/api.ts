@@ -7,6 +7,7 @@ import * as bcrypt from "bcrypt";
 import { throws } from "assert";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
+import { loginWith2FA } from "./2fa";
 
 // In-memory store for OTPs
 const otpStore: Map<string, { otp: string; expiresAt: Date }> = new Map();
@@ -21,9 +22,38 @@ interface LoginParams {
   password: string;
 }
 
-interface UserData{
-  email:string; 
+interface UserData {
+  email: string;
 }
+
+//generate and send otp
+const sendOTP = async (params: {email:string}) => {
+  // Generate OTP
+  const otp = crypto.randomInt(100000, 999999).toString();
+  const otpExpiry = new Date(Date.now() + 15 * 60 * 1000); // OTP valid for 15 minutes
+
+  // Store OTP in the in-memory store
+  otpStore.set(params.email, { otp, expiresAt: otpExpiry });
+
+  // Send OTP via email
+  const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 587,
+    auth: {
+      //user: "ressie.satterfield32@ethereal.email",
+      //pass: "fe873T1gMESqTWCWA9",
+      user: "2nipunkumar1623400iit@gmail.com",
+      pass: "rwwu jexa emry tobk",
+    },
+  });
+  console.log("created");
+  await transporter.sendMail({
+    from: '"Your App" <2nipunkumar1623400iit@gmail.com>',
+    to: params.email,
+    subject: "Your OTP Code",
+    text: `Your OTP code is ${otp}. It is valid for 15 minutes.`,
+  });
+};
 
 //Registration endpoint
 export const register = api(
@@ -57,32 +87,7 @@ export const register = api(
         throw APIError.internal("Failed to create user");
       }
 
-      // Generate OTP
-      const otp = crypto.randomInt(100000, 999999).toString();
-      const otpExpiry = new Date(Date.now() + 15 * 60 * 1000); // OTP valid for 15 minutes
-
-      // Store OTP in the in-memory store
-      otpStore.set(params.email, { otp, expiresAt: otpExpiry });
-
-      // Send OTP via email
-      const transporter = nodemailer.createTransport({
-        host: "smtp.gmail.com",
-        port: 587,
-        auth: {
-          //user: "ressie.satterfield32@ethereal.email",
-          //pass: "fe873T1gMESqTWCWA9",
-          user: "2nipunkumar1623400iit@gmail.com",
-          pass: "rwwu jexa emry tobk",
-        },
-      });
-      console.log("created");
-      await transporter.sendMail({
-        from: '"Your App" <2nipunkumar1623400iit@gmail.com>',
-        to: params.email,
-        subject: "Your OTP Code",
-        text: `Your OTP code is ${otp}. It is valid for 15 minutes.`,
-      });
-
+      //await sendOTP(params);
       return { accessToken: "", refreshToken: "" }; // Return tokens as needed
     } catch (error) {
       console.error("Registration error:", error);
@@ -93,6 +98,18 @@ export const register = api(
       throw APIError.internal(
         "Failed to register user: " + (error as Error).message
       );
+    }
+  }
+);
+
+//send otp endpoint
+export const sendOtp = api(
+  { method: "POST", path: "/auth/send-otp" },
+  async (params: {email:string}): Promise<void> => {
+    try {
+      await sendOTP({email:params.email});
+    } catch (error) {
+      throw APIError.internal("Failed to send OTP:" + (error as Error).message);
     }
   }
 );
@@ -207,9 +224,13 @@ export const verifyOtp = api(
 );
 
 const isTokenExpired = (token: string): boolean => {
-  const payload = JSON.parse(atob(token.split(".")[1]));
-  const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
-  return payload.exp < currentTime; // Check if the token is expired
+  if (!token || !token.includes('.')) {
+    console.error("Invalid token format:", token);
+    return true; // Treat as expired if the format is invalid
+  }
+  const payload = JSON.parse(atob(token.split('.')[1]));
+  const currentTime = Math.floor(Date.now() / 1000);
+  return payload.exp < currentTime;
 };
 
 // Forgot Password endpoint
@@ -276,14 +297,19 @@ export const resetPassword = api(
     }
 
     // Verify the old password
-    const validOldPassword = await bcrypt.compare(params.oldPassword, user.password_hash);
+    const validOldPassword = await bcrypt.compare(
+      params.oldPassword,
+      user.password_hash
+    );
     if (!validOldPassword) {
       throw APIError.invalidArgument("Old password is incorrect");
     }
 
     // Check if the new password is the same as the old password
     if (params.oldPassword === params.newPassword) {
-      throw APIError.invalidArgument("New password cannot be the same as the old password");
+      throw APIError.invalidArgument(
+        "New password cannot be the same as the old password"
+      );
     }
 
     const saltRounds = 10;
@@ -313,17 +339,17 @@ export const logout = api(
   }
 );
 
-export const getUserData=api(
-  {method:"GET",path:"/auth/user",auth:true},
-  async():Promise<UserData>=>{
-    const authData=getAuthData();
-    if(!authData)throw APIError.unauthenticated("not authenticated");
+export const getUserData = api(
+  { method: "GET", path: "/auth/user", auth: true },
+  async (): Promise<UserData> => {
+    const authData = getAuthData();
+    if (!authData) throw APIError.unauthenticated("not authenticated");
 
     //fetch user data from db
-    const user =await db.queryRow<UserData>`
+    const user = await db.queryRow<UserData>`
     SELECT email FROM users WHERE id=${authData.userID}
     `;
-    if(!user) throw APIError.notFound("user not found");
+    if (!user) throw APIError.notFound("user not found");
     return user;
   }
 );

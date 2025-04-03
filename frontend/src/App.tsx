@@ -7,6 +7,7 @@ import Profile from "./components/Profile";
 import ResetPassword from './components/ResetPassword';
 import VerifyOtp from './components/VerifyOtp';
 import ForgotPassword from './components/ForgotPassword';
+import TwoFALogin from './components/TwoFALogin';
 
 function App() {
 
@@ -18,6 +19,7 @@ function App() {
                     <Route path="/" element={<Login />} />
                     <Route path="/register" element={<Register />} />
                     <Route path="/verify-otp" element={<VerifyOtp />} />
+                    <Route path="/two-fa-login" element={<TwoFALogin />} />
                     <Route path="/home" element={<Home />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/resetPassword" element={<ResetPassword />} />
