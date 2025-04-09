@@ -24,6 +24,7 @@ interface LoginParams {
 
 interface UserData {
   email: string;
+  role: string;
 }
 
 //generate and send otp
@@ -123,8 +124,9 @@ export const login = api(
       id: string;
       password_hash: string;
       email_verified: boolean;
+      role: string;
     }>`
-            SELECT id, password_hash,email_verified FROM users WHERE email = ${params.email}
+            SELECT id, password_hash, email_verified, role FROM users WHERE email = ${params.email}
         `;
 
     if (!user) {
@@ -146,8 +148,8 @@ export const login = api(
       throw APIError.invalidArgument("Invalid credentials");
     }
 
-    // Generate tokens
-    const tokens = await generateTokens(user.id);
+    // Generate tokens with role
+    const tokens = await generateTokens(user.id, user.role);
 
     // Store refresh token hash in database
     await db.exec`
@@ -182,8 +184,17 @@ export const refresh = api(
         throw APIError.invalidArgument("Invalid refresh token");
       }
 
-      // Generate new tokens
-      const tokens = await generateTokens(payload.userID);
+      // Get user role
+      const user = await db.queryRow<{ role: string }>`
+                SELECT role FROM users WHERE id = ${payload.userID}
+            `;
+
+      if (!user) {
+        throw APIError.internal("User not found");
+      }
+
+      // Generate new tokens with role
+      const tokens = await generateTokens(payload.userID, user.role);
 
       // Replace old refresh token
       await db.exec`
@@ -347,9 +358,13 @@ export const getUserData = api(
 
     //fetch user data from db
     const user = await db.queryRow<UserData>`
-    SELECT email FROM users WHERE id=${authData.userID}
+    SELECT email, role FROM users WHERE id=${authData.userID}
     `;
-    if (!user) throw APIError.notFound("user not found");
+
+    if (!user) {
+      throw APIError.internal("User not found");
+    }
+
     return user;
   }
 );

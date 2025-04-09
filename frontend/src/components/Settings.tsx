@@ -1,17 +1,19 @@
 import useAuth from "../hooks/useAuth";
+//import { useNavigate } from "react-router-dom";
+import TwoFAPopup from "./TwoFAPopup";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import Swal from "sweetalert2";
+import {useNavigate} from "react-router-dom";
 
-const Profile: React.FC = () => {
-  const navigate = useNavigate();
+const Settings: React.FC = () => {
+  useAuth();
+  const navigate=useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [userData, setUserData] = useState<{ email: string; role: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   //function to fetch user data
-  const fetchUserData = async () => {
+  const fetchUserData = async () => {   
     try {
       const token = localStorage.getItem("accessToken");
       const response = await axios.get("http://localhost:4000/auth/user", {
@@ -22,6 +24,7 @@ const Profile: React.FC = () => {
       setUserData(response.data);
       console.log("User data:", response.data);
     } catch (err) {
+      console.log(error);
       console.error("error in fetching user data :", err);
       setError("Failed to fetch user data.");
     }
@@ -32,54 +35,12 @@ const Profile: React.FC = () => {
     fetchUserData();
   }, []);
 
-  //function to handle logout
-  const handleLogOut = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    try {
-      const token = localStorage.getItem("accessToken");
-      console.log("Token:", token);
-      const response = await axios.post(
-        "http://localhost:4000/auth/logout",
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.status === 200) {
-        // Clearing  the token from local storage
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        Swal.fire({
-          icon: 'success',
-          title: 'Logged out successfully!',
-          confirmButtonText: 'OK',
-        }).then((result) => {
-          if (result.isConfirmed) {
-            navigate('/');
-          }
-        });
-      }
-    } catch (error) {
-      console.error("LogOut failed:", error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Log out failed !!',
-        confirmButtonText: 'OK',
-      });
-    }
-  };
-
-  useAuth();
-
   return (
     <div className="flex flex-col min-h-screen bg-gray-900">
       <header className="text-gray-300 body-font bg-gray-800 shadow-md z-10">
         <div className="container mx-auto flex flex-wrap p-5 flex-col md:flex-row items-center">
           <a className="flex title-font font-medium items-center text-white mb-4 md:mb-0">
-            <h2 className="ml-3 text-xl">Profile</h2>
+            <h2 className="ml-3 text-xl">Settings</h2>
           </a>
           <nav className="md:ml-auto flex flex-wrap items-center text-base justify-center">
             <a
@@ -151,72 +112,24 @@ const Profile: React.FC = () => {
         </div>
       </header>
       
-      {/* user profile content */}
       <div className="flex-grow container mx-auto px-4 py-8 mt-16">
         {error && <div className="p-3 bg-red-900/50 text-red-400 rounded-md border border-red-800 mb-4">{error}</div>}
-        {userData ? (
-          <div className="bg-gray-800 overflow-hidden shadow rounded-lg border border-gray-700">
-            <div className="px-4 py-5 sm:px-6">
-              <h3 className="text-lg leading-6 font-medium text-white">
-                User Profile
-              </h3>
-              <p className="mt-1 max-w-2xl text-sm text-gray-400">
-                This is some information about the user.
-              </p>
-            </div>
-            <div className="border-t border-gray-700 px-4 py-5 sm:p-0">
-              <dl className="sm:divide-y sm:divide-gray-700">
-                <div className="py-3 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-400">
-                    Full name
-                  </dt>
-                  <dd className="mt-1 text-sm text-white sm:mt-0 sm:col-span-2">
-                    {userData.email.split("@")[0]}
-                  </dd>
-                </div>
-                <div className="py-3 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-400">
-                    Email address
-                  </dt>
-                  <dd className="mt-1 text-sm text-white sm:mt-0 sm:col-span-2">
-                    {userData.email}
-                  </dd>
-                </div>
-                <div className="py-3 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-400">
-                    Phone number
-                  </dt>
-                  <dd className="mt-1 text-sm text-white sm:mt-0 sm:col-span-2">
-                    (123) 456-7890
-                  </dd>
-                </div>
-                <div className="py-3 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-400">
-                    Address
-                  </dt>
-                  <dd className="mt-1 text-sm text-white sm:mt-0 sm:col-span-2">
-                    123 Main St
-                    <br />
-                    Anytown, USA 12345
-                  </dd>
-                </div>
-              </dl>
+        
+        <div className="bg-gray-800 overflow-hidden shadow rounded-lg border border-gray-700 p-6">
+          <h2 className="text-lg font-bold mb-4 text-white">Two-Factor Authentication</h2>
+          <div className="flex justify-between items-center">
+            <p className="text-gray-300 flex-grow mr-4">
+              Protect your account with an additional layer of security by enabling
+              two-factor authentication.
+            </p>
+            <div>
+              <TwoFAPopup userEmail={userData?.email} />
             </div>
           </div>
-        ) : (
-          <p className="text-white">Loading user data ...</p>
-        )}
-        
-        <button 
-          id="logout" 
-          onClick={handleLogOut}
-          className="mt-6 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition-colors duration-200"
-        >
-          Sign out
-        </button>
+        </div>
       </div>
     </div>
   );
 };
 
-export default Profile;
+export default Settings;

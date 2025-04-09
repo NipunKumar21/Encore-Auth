@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import useAuth from "../hooks/useAuth";
+import Swal from "sweetalert2";
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -29,14 +30,23 @@ const Home: React.FC = () => {
         // Clearing  the token from local storage
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
-        alert("Logged out successfully!");
-        setTimeout(() => {
-          navigate("/");
-        }, 1000);
+        Swal.fire({
+          icon: 'success',
+          title: 'Logged out successfully!',
+          confirmButtonText: 'OK',
+        }).then((result) => {
+          if (result.isConfirmed) {
+            navigate('/');
+          }
+        });
       }
     } catch (error) {
       console.error("LogOut failed:", error);
-      alert("LogOut failed !!");
+      Swal.fire({
+        icon: 'error',
+        title: 'Log Out failed !!',
+        confirmButtonText: 'OK',
+      })
     }
   };
 
@@ -69,9 +79,9 @@ const Home: React.FC = () => {
             </a>
             <a
               className="mr-5 hover:text-white cursor-pointer "
-              onClick={() => navigate("/admin")}
+              onClick={() => navigate("/admin/users")}
             >
-              Admin-Page
+              User Management
             </a>
           </nav>
           <div className="relative">

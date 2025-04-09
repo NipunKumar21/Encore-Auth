@@ -8,6 +8,7 @@ export interface TokenPayload{
     userID: string;
     type:"access"|"refresh";
     exp:number;
+    role?: string;
 }
 
 export interface AuthParams{
@@ -15,7 +16,8 @@ export interface AuthParams{
 }
 
 export interface AuthData{
-    userID:string;
+    userID: string;
+    role?: string;
 }
 
 export interface RefreshParams{

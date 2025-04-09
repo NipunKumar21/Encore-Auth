@@ -3,6 +3,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
+import Swal from "sweetalert2";
 
 const Register: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -22,14 +23,29 @@ const Register: React.FC = () => {
         role,
       });
       console.log("Registered:", response.data);
-      setMessage("Registration successful!");
+      //Message("Registration successful!");
       setError(null);
-      setTimeout(() => {
-        navigate("/verify-otp");
-      }, 1000);
+      Swal.fire({
+        icon: 'success',
+        title: 'Registration successful!',
+        confirmButtonText: 'OK',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate("/verify-otp");
+        }
+      });
+      // setTimeout(() => {
+      //   navigate("/verify-otp");
+      // }, 1000);
     } catch (error) {
       console.error("Registration failed:", error);
-      setError("Registration failed. Please try again.");
+      Swal.fire({
+        icon: 'error',
+        title: 'Registration failed. Please try again',
+        confirmButtonText: 'OK',
+      })
+      // setError("Registration failed. Please try again.");
+      
       setMessage(null);
     }
   };

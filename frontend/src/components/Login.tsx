@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
+import Swal from "sweetalert2";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -41,10 +42,26 @@ const Login: React.FC = () => {
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         console.error("Login failed:", error.response.data);
-        alert("Login failed: " + error.response.data.message);
+        Swal.fire({
+          icon: 'error',
+          title: 'Login Failed',
+          text: error.response.data.message || 'Something went wrong!',
+          background: '#fff3f3', // light red background (optional)
+          color: '#000', // text color (optional)
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#d33' // red button
+        });
       } else {
         console.error("Login failed:", error);
-        alert("Login failed. Please check your credentials.");
+        Swal.fire({
+          icon: 'error',
+          title: 'Login Failed',
+          text: 'Please check your credentials',
+          background: '#fff3f3', // light red background (optional)
+          color: '#000', // text color (optional)
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#d33' // red button
+        });
       }
     }
   };

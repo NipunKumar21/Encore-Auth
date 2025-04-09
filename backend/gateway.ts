@@ -13,7 +13,10 @@ export const auth=authHandler<AuthParams, AuthData>(async (params)=>{
         if(payload.type!=="access"){
             throw APIError.unauthenticated("Invalid token type");
         }
-        return {userID:payload.userID};
+        return {
+            userID: payload.userID,
+            role: payload.role
+        };
     }catch(error){
         throw APIError.unauthenticated("Invalid token type");
     }

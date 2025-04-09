@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios, { AxiosError } from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const VerifyOtp: React.FC = () => {
   const [otp, setOtp] = useState("");
@@ -27,12 +28,25 @@ const VerifyOtp: React.FC = () => {
       localStorage.setItem("refreshToken", response.data.refreshToken);
       console.log("Access Token:", response.data.accessToken);
       console.log("Refresh Token:", response.data.refreshToken);
-      alert("OTP verified successfully!");
-      navigate("/home"); // Redirect to home after successful verification
+      Swal.fire({
+        icon: 'success',
+        title: 'OTP verified successfully!',
+        confirmButtonText: 'OK',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate('/home');
+        }
+      });
+      //navigate("/home"); // Redirect to home after successful verification
     } catch (error: unknown) {
       const axiosError = error as AxiosError; // Type assertion
       console.error("Verification failed:", axiosError.response?.data);
-      alert("Verification failed. Please check your OTP.");
+      Swal.fire({
+        icon: 'success',
+        title: 'Verification failed. Please check your OTP.',
+        confirmButtonText: 'OK',
+      })
+
     }
   };
 

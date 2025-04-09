@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const VerifyOtp: React.FC = () => {
   const [otp, setOtp] = useState("");
@@ -15,13 +16,24 @@ const VerifyOtp: React.FC = () => {
         email,
         otp,
       });
-      alert("OTP verified successfully!");
-      setTimeout(() => {
-        navigate("/"); // Redirect to login page
-      }, 1000);
+      Swal.fire({
+        icon: 'success',
+        title: 'OTP verified successfully!',
+        confirmButtonText: 'OK',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate('/');
+        }
+      });
+
     } catch (error) {
       console.error("Verification failed:", error);
-      alert("Verification failed. Please check your OTP.");
+      Swal.fire({
+        icon: 'success',
+        title: 'OTP Verification failed',
+        text:'Please check your OTP.',
+        confirmButtonText: 'OK',
+      })
     }
   };
 

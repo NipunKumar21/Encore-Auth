@@ -14,6 +14,11 @@ interface LoginParams {
 
 interface Enable2FAParams {
   email: string;
+  password:string;
+}
+
+interface Disable2FAParams{
+  email:string;
 }
 
 interface VerifyOTPParams {
@@ -139,12 +144,16 @@ async function verifyOTP(userId: string, otp: string, purpose: 'verification' | 
 export const enable2FA = api(
   { method: "POST", path: "/auth/enable-2fa" },
   async (params: Enable2FAParams): Promise<void> => {
-    const user = await db.queryRow<{ id: string }>`
-      SELECT id FROM users WHERE email = ${params.email}
+    const user = await db.queryRow<{ id: string ,password_hash:string}>`
+      SELECT id,password_hash FROM users WHERE email = ${params.email}
     `;
 
     if (!user) {
       throw APIError.invalidArgument("User not found");
+    }
+    const validPassword = await bcrypt.compare(params.password, user.password_hash);
+    if (!validPassword) {
+      throw APIError.invalidArgument("Invalid credentials");
     }
 
     // Generate and send OTP for verification
@@ -243,8 +252,9 @@ export const loginWith2FA = api(
       password_hash: string;
       email_verified: boolean;
       two_factor_enabled: boolean;
+      role: string;
     }>`
-      SELECT id, password_hash, email_verified, two_factor_enabled 
+      SELECT id, password_hash, email_verified, two_factor_enabled, role
       FROM users 
       WHERE email = ${params.email}
     `;
@@ -256,7 +266,8 @@ export const loginWith2FA = api(
     console.log('User found:', {
       id: user.id,
       email_verified: user.email_verified,
-      two_factor_enabled: user.two_factor_enabled
+      two_factor_enabled: user.two_factor_enabled,
+      role: user.role
     });
 
     if (!user.email_verified) {
@@ -277,7 +288,7 @@ export const loginWith2FA = api(
     } else {
       console.log('2FA is not enabled, proceeding with normal login');
       // If 2FA is not enabled, proceed with normal login
-      const tokens = await generateTokens(user.id);
+      const tokens = await generateTokens(user.id, user.role);
       await db.exec`
         INSERT INTO refresh_tokens (user_id, token_hash, expires_at)
         VALUES (${user.id}, ${tokens.refreshToken}, NOW() + INTERVAL '7 days')
@@ -291,8 +302,8 @@ export const loginWith2FA = api(
 export const verify2FAOTP = api(
   { method: "POST", path: "/auth/verify-2fa-otp" },
   async (params: VerifyOTPParams): Promise<AuthTokens> => {
-    const user = await db.queryRow<{ id: string }>`
-      SELECT id FROM users WHERE email = ${params.email}
+    const user = await db.queryRow<{ id: string; role: string }>`
+      SELECT id, role FROM users WHERE email = ${params.email}
     `;
 
     if (!user) {
@@ -305,7 +316,7 @@ export const verify2FAOTP = api(
     }
 
     // Generate tokens after successful 2FA verification
-    const tokens = await generateTokens(user.id);
+    const tokens = await generateTokens(user.id, user.role);
     await db.exec`
       INSERT INTO refresh_tokens (user_id, token_hash, expires_at)
       VALUES (${user.id}, ${tokens.refreshToken}, NOW() + INTERVAL '7 days')
@@ -334,4 +345,35 @@ export const check2FAStatus = api(
     console.log('2FA status:', user.two_factor_enabled);
     return { enabled: user.two_factor_enabled };
   }
-); 
+);
+
+//endpoint to disable 2fa 
+export const disable2FA = api(
+  { method: "POST", path: "/auth/disable-2fa" },
+  async (params: Disable2FAParams): Promise<void> => {
+    const user = await db.queryRow<{ id: string }>`
+      SELECT id FROM users WHERE email = ${params.email}
+    `;
+    
+    if (!user) {
+      throw APIError.invalidArgument("User not found");
+    }
+
+    console.log("User ID:", user.id);
+
+    try {
+      const updateResult = await db.queryRow<{ two_factor_enabled: boolean }>`
+        UPDATE users SET two_factor_enabled = false WHERE id = ${user.id}
+      `;
+      
+      if (!updateResult) {
+        throw new Error("No rows affected. User may not exist or 2FA was already disabled.");
+      }
+
+      console.log('2FA disabled successfully');
+    } catch (error) {
+      console.error("Error disabling 2FA:", error);
+      throw APIError.internal("Failed to disable 2FA");
+    }
+  }
+);
