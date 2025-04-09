@@ -2,8 +2,8 @@
 
 import { Gateway,APIError } from "encore.dev/api";
 import { authHandler, AuthHandler } from "encore.dev/auth";
-import {AuthParams,AuthData } from "./types";
-import {verifyAccessToken,verifyRefreshToken}from "./jwt"
+import {AuthParams,AuthData } from "../user/types";
+import {verifyAccessToken,verifyRefreshToken}from "../auth/jwt";
 
 export const auth=authHandler<AuthParams, AuthData>(async (params)=>{
     try{

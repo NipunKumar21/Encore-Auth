@@ -1,6 +1,6 @@
 import{secret} from "encore.dev/config";
 import{SignJWT,jwtVerify} from "jose";
-import { TokenPayload } from "./types";
+import { TokenPayload } from "../user/types";
 
 //defining secrets for jwt signing
 const JWT_SECRET=secret("JWT_SECRET");

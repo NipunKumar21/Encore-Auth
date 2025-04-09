@@ -1,13 +1,13 @@
 import { api, APIError } from "encore.dev/api";
-import { db } from "./db";
-import { generateTokens, verifyRefreshToken } from "./jwt";
-import { AuthTokens, RefreshParams } from "./types";
+import { db } from "../db";
+import { generateTokens, verifyRefreshToken } from "../auth/jwt";
+import { AuthTokens, RefreshParams } from "../user/types";
 import { getAuthData } from "~encore/auth";
 import * as bcrypt from "bcrypt";
 import { throws } from "assert";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
-import { loginWith2FA } from "./2fa";
+import { loginWith2FA } from "../auth/2fa";
 
 // In-memory store for OTPs
 const otpStore: Map<string, { otp: string; expiresAt: Date }> = new Map();

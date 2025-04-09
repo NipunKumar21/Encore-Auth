@@ -1,7 +1,7 @@
 import { api, APIError } from "encore.dev/api";
 import { getAuthData } from "~encore/auth";
 import { AuthData } from "./types";
-import { db } from "./db";
+import { db } from "../db";
 import * as bcrypt from "bcrypt";
 
 // User interface

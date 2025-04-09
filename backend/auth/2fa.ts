@@ -1,7 +1,7 @@
 import { api, APIError } from "encore.dev/api";
-import { db } from "./db";
+import { db } from "../db";
 import { generateTokens } from "./jwt";
-import { AuthTokens } from "./types";
+import { AuthTokens } from "../user/types";
 import { getAuthData } from "~encore/auth";
 import * as bcrypt from "bcrypt";
 import nodemailer from "nodemailer";
