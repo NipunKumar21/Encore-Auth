@@ -1,4 +1,5 @@
 import useAuth from "../hooks/useAuth";
+import useUserRole from "../hooks/useUserRole";
 //import { useNavigate } from "react-router-dom";
 import TwoFAPopup from "./TwoFAPopup";
 import axios from "axios";
@@ -11,6 +12,7 @@ const Settings: React.FC = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [userData, setUserData] = useState<{ email: string; role: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { userRole, loading } = useUserRole();
 
   //function to fetch user data
   const fetchUserData = async () => {   
@@ -49,12 +51,14 @@ const Settings: React.FC = () => {
             >
               Home
             </a>
-            <a
-              className="mr-5 hover:text-white cursor-pointer"
-              onClick={() => navigate("/admin/users")}
-            >
-              User Management
-            </a>
+            {!loading && userRole === 'admin' && (
+              <a
+                className="mr-5 hover:text-white cursor-pointer"
+                onClick={() => navigate("/admin/users")}
+              >
+                User Management
+              </a>
+            )}
           </nav>
           <div className="relative">
             <button

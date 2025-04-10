@@ -1,14 +1,17 @@
 import useAuth from "../hooks/useAuth";
+import useUserRole from "../hooks/useUserRole";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
+import { format } from "date-fns";
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [userData, setUserData] = useState<{ email: string; role: string } | null>(null);
+  const [userData, setUserData] = useState<{ email: string; role: string; created_at: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { userRole, loading } = useUserRole();
 
   //function to fetch user data
   const fetchUserData = async () => {
@@ -74,6 +77,16 @@ const Profile: React.FC = () => {
 
   useAuth();
 
+  // Format date helper function
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), 'PPpp');
+    } catch (err) {
+      console.error('Error formatting date:', err);
+      return 'Invalid date';
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-900">
       <header className="text-gray-300 body-font bg-gray-800 shadow-md z-10">
@@ -88,12 +101,14 @@ const Profile: React.FC = () => {
             >
               Home
             </a>
-            <a
-              className="mr-5 hover:text-white cursor-pointer"
-              onClick={() => navigate("/admin/users")}
-            >
-              User Management
-            </a>
+            {!loading && userRole === 'admin' && (
+              <a
+                className="mr-5 hover:text-white cursor-pointer"
+                onClick={() => navigate("/admin/users")}
+              >
+                User Management
+              </a>
+            )}
           </nav>
           <div className="relative">
             <button
@@ -155,7 +170,7 @@ const Profile: React.FC = () => {
       <div className="flex-grow container mx-auto px-4 py-8 mt-16">
         {error && <div className="p-3 bg-red-900/50 text-red-400 rounded-md border border-red-800 mb-4">{error}</div>}
         {userData ? (
-          <div className="bg-gray-800 overflow-hidden shadow rounded-lg border border-gray-700">
+          <div className="bg-gray-800 overflow-hidden shadow rounded-lg border border-gray-700 mb-8">
             <div className="px-4 py-5 sm:px-6">
               <h3 className="text-lg leading-6 font-medium text-white">
                 User Profile
@@ -184,6 +199,14 @@ const Profile: React.FC = () => {
                 </div>
                 <div className="py-3 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                   <dt className="text-sm font-medium text-gray-400">
+                    User Role
+                  </dt>
+                  <dd className="mt-1 text-sm text-white sm:mt-0 sm:col-span-2">
+                    {userData.role}
+                  </dd>
+                </div>
+                <div className="py-3 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt className="text-sm font-medium text-gray-400">
                     Phone number
                   </dt>
                   <dd className="mt-1 text-sm text-white sm:mt-0 sm:col-span-2">
@@ -200,6 +223,14 @@ const Profile: React.FC = () => {
                     Anytown, USA 12345
                   </dd>
                 </div>
+                <div className="py-3 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt className="text-sm font-medium text-gray-400">
+                    Created At
+                  </dt>
+                  <dd className="mt-1 text-sm text-white sm:mt-0 sm:col-span-2">
+                    {userData.created_at ? formatDate(userData.created_at) : 'Not available'}
+                  </dd>
+                </div>
               </dl>
             </div>
           </div>
@@ -207,13 +238,15 @@ const Profile: React.FC = () => {
           <p className="text-white">Loading user data ...</p>
         )}
         
-        <button 
-          id="logout" 
-          onClick={handleLogOut}
-          className="mt-6 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition-colors duration-200"
-        >
-          Sign out
-        </button>
+        <div className="flex justify-end">
+          <button 
+            id="logout" 
+            onClick={handleLogOut}
+            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition-colors duration-200"
+          >
+            Sign out
+          </button>
+        </div>
       </div>
     </div>
   );

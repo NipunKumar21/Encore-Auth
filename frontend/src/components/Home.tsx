@@ -2,11 +2,13 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import useAuth from "../hooks/useAuth";
+import useUserRole from "../hooks/useUserRole";
 import Swal from "sweetalert2";
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const { userRole, loading } = useUserRole();
 
   useAuth();
   
@@ -50,7 +52,6 @@ const Home: React.FC = () => {
     }
   };
 
-
   return (
     <div>
       <header className="text-gray-600 body-font fixed top-0 left-0 right-0 bg-gray-800 z-10">
@@ -77,12 +78,14 @@ const Home: React.FC = () => {
             >
               Home
             </a>
-            <a
-              className="mr-5 hover:text-white cursor-pointer "
-              onClick={() => navigate("/admin/users")}
-            >
-              User Management
-            </a>
+            {!loading && userRole === 'admin' && (
+              <a
+                className="mr-5 hover:text-white cursor-pointer "
+                onClick={() => navigate("/admin/users")}
+              >
+                User Management
+              </a>
+            )}
           </nav>
           <div className="relative">
             <button
@@ -127,17 +130,10 @@ const Home: React.FC = () => {
                   </li>
                   <li>
                     <a
-                      onClick={() => navigate('/activity')}
+                      onClick={handleLogOut}
                       className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer"
                     >
-                      Activity Log
-                    </a>
-                  </li>
-                  <li className="border-t border-gray-200 dark:border-gray-600">
-                    <a onClick={handleLogOut}
-                      className="block px-4 py-2 text-red-600 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-red-400 cursor-pointer"
-                    >
-                      Sign out
+                      Logout
                     </a>
                   </li>
                 </ul>
@@ -146,8 +142,15 @@ const Home: React.FC = () => {
           </div>
         </div>
       </header>
-      <div className="pt-24">{/* Your main content goes here */}
-        <h2>Welcome to the Home Page</h2>
+      <div className="min-h-screen bg-gray-900 py-8 px-4 sm:px-6 lg:px-8 mt-16">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-3xl font-bold text-white mb-8">Welcome to My-App</h1>
+          <div className="bg-gray-800 shadow rounded-lg p-6">
+            <p className="text-gray-300">
+              This is your dashboard. You can manage your profile, settings, and more from here.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

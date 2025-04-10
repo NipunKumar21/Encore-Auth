@@ -25,6 +25,7 @@ interface LoginParams {
 interface UserData {
   email: string;
   role: string;
+  created_at: string;
 }
 
 //generate and send otp
@@ -358,7 +359,7 @@ export const getUserData = api(
 
     //fetch user data from db
     const user = await db.queryRow<UserData>`
-    SELECT email, role FROM users WHERE id=${authData.userID}
+    SELECT email, role, created_at FROM users WHERE id=${authData.userID}
     `;
 
     if (!user) {
