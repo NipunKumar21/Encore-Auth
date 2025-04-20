@@ -11,8 +11,8 @@ const VerifyOtp: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Email:", email);
-    console.log("OTP:", otp);
+    //console.log("Email:", email);
+    //console.log("OTP:", otp);
 
     try {
       const response = await axios.post(
@@ -26,8 +26,8 @@ const VerifyOtp: React.FC = () => {
       // Store tokens in local storage
       localStorage.setItem("accessToken", response.data.accessToken);
       localStorage.setItem("refreshToken", response.data.refreshToken);
-      console.log("Access Token:", response.data.accessToken);
-      console.log("Refresh Token:", response.data.refreshToken);
+      //console.log("Access Token:", response.data.accessToken);
+      //console.log("Refresh Token:", response.data.refreshToken);
       Swal.fire({
         icon: 'success',
         title: 'OTP verified successfully!',

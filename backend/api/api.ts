@@ -42,10 +42,8 @@ const sendOTP = async (params: {email:string}) => {
     host: "smtp.gmail.com",
     port: 587,
     auth: {
-      //user: "ressie.satterfield32@ethereal.email",
-      //pass: "fe873T1gMESqTWCWA9",
       user: "2nipunkumar1623400iit@gmail.com",
-      pass: "rwwu jexa emry tobk",
+      pass: "rwwu jexa emry tobk", //gmail app password 
     },
   });
   console.log("created");
@@ -89,14 +87,12 @@ export const register = api(
         throw APIError.internal("Failed to create user");
       }
 
-      //await sendOTP(params);
       return { accessToken: "", refreshToken: "" }; // Return tokens as needed
     } catch (error) {
       console.error("Registration error:", error);
       if (error instanceof APIError) {
         throw error;
       }
-      // Type assertion to handle unknown error
       throw APIError.internal(
         "Failed to register user: " + (error as Error).message
       );

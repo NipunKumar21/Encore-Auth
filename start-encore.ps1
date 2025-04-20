@@ -1,3 +1,5 @@
+# to use this script, run => .\start-encore.ps1
+
 # Check if Docker Desktop is running
 $dockerProcess = Get-Process "*Docker Desktop*" -ErrorAction SilentlyContinue
 

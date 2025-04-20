@@ -66,6 +66,21 @@ const Login: React.FC = () => {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    try {
+      const response = await axios.get('http://localhost:4000/auth/google');
+      window.location.href = response.data.authUrl;
+    } catch (error) {
+      console.error('Failed to initiate Google login:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Login Failed',
+        text: 'Failed to connect with Google. Please try again.',
+        confirmButtonText: 'OK',
+      });
+    }
+  };
+
   return (
     <div className="flex justify-center items-center h-screen ">
       <div className=" p-8 rounded-lg shadow-lg w-full max-w-md mx-4">
@@ -135,14 +150,14 @@ const Login: React.FC = () => {
           </Link>
         </div>
         <div className="mt-6">
-          <h3 className="text-center mb-4">Or</h3>
-          <button className="w-full flex items-center justify-center mb-4 p-2 border rounded-md shadow-sm hover:bg-gray-50">
+          <button onClick={handleGoogleLogin} 
+          className="w-full flex items-center justify-center mb-4 p-2 border rounded-md shadow-sm hover:bg-gray-50">
             <img
               className="mr-2 h-5"
               src="https://static.cdnlogo.com/logos/g/35/google-icon.svg"
               alt="Google Icon"
             />
-            Log in with Google
+            Continue with Google
           </button>
         </div>
       </div>

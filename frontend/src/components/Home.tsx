@@ -17,7 +17,7 @@ const Home: React.FC = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem("accessToken");
-      console.log("Token:", token);
+      //console.log("Token:", token);
       const response = await axios.post(
         "http://localhost:4000/auth/logout",
         {},
