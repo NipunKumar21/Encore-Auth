@@ -61,7 +61,6 @@
 - **Framework**: Encore
 - **Language**: TypeScript
 - **Database**: PostgreSQL
-- **Authentication**: JWT, 2FA
 
 ### Frontend
 - **Framework**: React
@@ -137,7 +136,6 @@ The API documentation is available at `/api/docs` when running the server.
 - JWT token-based authentication
 - Two-factor authentication support
 - Password hashing with bcrypt
-- Rate limiting on authentication endpoints
 - CORS protection
 - SQL injection prevention
 - XSS protection
