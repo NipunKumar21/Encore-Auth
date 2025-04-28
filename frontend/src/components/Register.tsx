@@ -11,7 +11,7 @@ const Register: React.FC = () => {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
-  const [role, setRole] = useState("user");
+  const [role] = useState("user");
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -101,12 +101,12 @@ const Register: React.FC = () => {
             </span>
           </div>
 
-          <br></br>
+          {/* <br></br>
           <select value={role} onChange={(e) => setRole(e.target.value)} className="p-2 border rounded-md">
             <option value="user" className="text-black">User</option>
             <option value="admin" className="text-black">Admin</option>
           </select>
-          <br></br>
+          <br></br> */}
 
           <button
             type="submit"

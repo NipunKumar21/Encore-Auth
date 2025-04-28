@@ -91,14 +91,32 @@ export const googleCallback = api(
 
 //helper function to handle sso user creation/login
 async function handleSSOUser(userInfo:SSOUserInfo):Promise<AuthTokens>{
-    const existingUser=await db.queryRow<{ id:string; role:string}>`
+    // First check if user exists with this SSO provider and ID
+    const existingSSOUser=await db.queryRow<{ id:string; role:string}>`
     SELECT id,role FROM users
     WHERE sso_provider=${userInfo.provider} AND sso_id=${userInfo.id}
     `;
 
-    if(existingUser){
-        //user already exists, return/generate tokens
-        return await generateTokens(existingUser.id,existingUser.role);
+    if(existingSSOUser){
+        //user already exists with this SSO provider, return/generate tokens
+        return await generateTokens(existingSSOUser.id,existingSSOUser.role);
+    }
+
+    // Check if user exists with this email
+    const existingEmailUser=await db.queryRow<{ id:string; role:string}>`
+    SELECT id,role FROM users
+    WHERE email=${userInfo.email}
+    `;
+
+    if(existingEmailUser){
+        // User exists with this email, update their SSO info
+        await db.exec`
+        UPDATE users
+        SET sso_provider=${userInfo.provider},
+            sso_id=${userInfo.id}
+        WHERE id=${existingEmailUser.id}
+        `;
+        return await generateTokens(existingEmailUser.id,existingEmailUser.role);
     }
 
     //Create new user
